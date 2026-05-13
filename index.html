@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌸 大阪超完美客製旅 🌸 | 行程企劃書</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom Japanese Cute Font Loading (Fallback to sans-serif) */
+        @import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Nunito:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Kosugi Maru', 'Nunito', sans-serif;
+            background-color: #FFF9F5; /* Soft Peach/Beige */
+            color: #4A4A4A;
+        }
+
+        /* Timeline Styles */
+        .timeline-line {
+            position: absolute;
+            left: 24px;
+            top: 20px;
+            bottom: 0;
+            width: 4px;
+            background-color: #FFB7B2; /* Pastel Pink */
+            border-radius: 4px;
+            z-index: 0;
+        }
+
+        /* Schematic Map Styles */
+        .station-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+        .line-h { height: 6px; background-color: #E2E8F0; width: 100%; margin-top: 16px; }
+        .line-v { width: 6px; background-color: #E2E8F0; height: 100%; margin: 0 auto; }
+        
+        .line-midosuji { background-color: #E60012; }
+        .line-sakaisuji { background-color: #8B4513; }
+        .line-chuo { background-color: #008000; }
+
+        /* Chart Container Requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 250px;
+            max-height: 300px;
+        }
+
+        /* PDF Print Optimization */
+        @media print {
+            body { background-color: white; font-size: 12pt; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .app-container { max-width: 100% !important; margin: 0 !important; box-shadow: none !important; }
+            .tab-content { display: block !important; opacity: 1 !important; }
+            .timeline-card { break-inside: avoid; border: 2px solid #FFE4E1; margin-bottom: 20px; box-shadow: none; }
+            h1 { font-size: 24pt; color: #D53F8C; }
+            .page-break { page-break-before: always; }
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen pb-24">
+
+    <!-- Main Mobile-Sized Container -->
+    <div class="app-container max-w-md mx-auto bg-white min-h-screen shadow-xl relative overflow-hidden">
+        
+        <!-- Cover Section -->
+        <div class="bg-gradient-to-b from-pink-100 to-white pt-12 pb-8 px-6 text-center relative">
+            <div class="text-6xl mb-4 animate-bounce">✈️🎌🍡</div>
+            <h1 class="text-3xl font-bold text-pink-500 mb-2 tracking-wide">大阪超完美客製旅</h1>
+            <p class="text-gray-600 font-bold text-lg mb-1">2026 / 06 / 12 - 06 / 13</p>
+            <div class="inline-block bg-pink-50 text-pink-600 px-4 py-2 rounded-full text-sm font-bold border border-pink-200 mt-2 shadow-sm">
+                🏨 住宿：Tanimachikun Star Hotel
+            </div>
+        </div>
+
+        <!-- Navigation Tabs (Hidden in Print) -->
+        <div class="no-print sticky top-0 bg-white z-20 border-b border-gray-100 shadow-sm flex justify-around p-2">
+            <button onclick="switchTab('timeline')" id="btn-timeline" class="flex-1 py-2 text-center font-bold text-pink-500 border-b-4 border-pink-500 rounded-t-lg transition-colors">
+                📍 行程動線
+            </button>
+            <button onclick="switchTab('map')" id="btn-map" class="flex-1 py-2 text-center font-bold text-gray-400 border-b-4 border-transparent rounded-t-lg transition-colors">
+                🗺️ 地鐵簡圖
+            </button>
+            <button onclick="switchTab('stats')" id="btn-stats" class="flex-1 py-2 text-center font-bold text-gray-400 border-b-4 border-transparent rounded-t-lg transition-colors">
+                📊 數據分析
+            </button>
+        </div>
+
+        <!-- Tab Content: Timeline -->
+        <div id="tab-timeline" class="tab-content block p-4">
+            <p class="text-sm text-gray-500 mb-6 text-center leading-relaxed">
+                為您將景點依據地理位置重新組合，縮短乘車時間。第一天主攻市區與南區夜生活，第二天利用最新地鐵線直奔北區與名勝！
+            </p>
+
+            <div id="timeline-container" class="relative">
+                <div class="timeline-line"></div>
+                <!-- JS will inject timeline items here -->
+            </div>
+        </div>
+
+        <!-- Tab Content: Map (Schematic) -->
+        <div id="tab-map" class="tab-content hidden p-6 page-break">
+            <h2 class="text-2xl font-bold text-pink-500 mb-6 text-center">🗺️ 專屬地鐵攻略簡圖</h2>
+            <p class="text-sm text-gray-600 mb-8 text-center bg-blue-50 p-3 rounded-xl">
+                💡 <b>導航提示：</b> 本次行程主要依賴南北向的「御堂筋線/北大阪急行」。您的飯店位於「惠美須町/動物園前」，位居交通樞紐！
+            </p>
+
+            <!-- CSS Grid Map -->
+            <div class="grid grid-cols-3 gap-2 text-center items-center relative">
+                
+                <!-- North -->
+                <div class="station-node col-start-2">
+                    <span class="text-4xl mb-1">⛩️</span>
+                    <span class="bg-green-100 px-2 py-1 rounded-lg text-green-800">勝尾寺</span>
+                    <span class="text-xs text-gray-500 mt-1">箕面萱野站(轉公車)</span>
+                </div>
+                <div class="col-start-2 line-v line-midosuji h-8"></div>
+                <div class="station-node col-start-2">
+                    <span class="text-3xl mb-1">🎡</span>
+                    <span class="bg-purple-100 px-2 py-1 rounded-lg text-purple-800">NIFREL</span>
+                    <span class="text-xs text-gray-500 mt-1">千里中央(轉單軌)</span>
+                </div>
+                <div class="col-start-2 line-v line-midosuji h-8"></div>
+                
+                <!-- Central/Umeda -->
+                <div class="station-node col-start-2 relative">
+                    <span class="text-3xl mb-1">🏢</span>
+                    <span class="bg-blue-100 px-2 py-1 rounded-lg text-blue-800 border-2 border-red-500">梅田 (LINKS)</span>
+                    <span class="text-xs text-gray-500 mt-1">美食/購物轉運站</span>
+                </div>
+                <div class="col-start-2 line-v line-midosuji h-8"></div>
+                
+                <!-- East (Castle) -->
+                <div class="station-node col-start-3 row-start-7">
+                    <span class="text-3xl mb-1">🏯</span>
+                    <span class="bg-yellow-100 px-2 py-1 rounded-lg text-yellow-800">大阪城</span>
+                    <span class="text-xs text-gray-500 mt-1">谷町四丁目</span>
+                </div>
+                
+                <!-- South / Namba / Hotel -->
+                <div class="station-node col-start-2">
+                    <span class="text-3xl mb-1">🛍️</span>
+                    <span class="bg-pink-100 px-2 py-1 rounded-lg text-pink-800 border-2 border-red-500">心齋橋/難波</span>
+                    <span class="text-xs text-gray-500 mt-1">晚餐/宵夜區</span>
+                </div>
+                
+                <!-- Connection to Castle -->
+                <div class="col-start-2 col-end-3 row-start-8 flex items-center h-full">
+                    <div class="line-h line-chuo w-full"></div>
+                </div>
+
+                <div class="col-start-2 line-v line-midosuji h-8"></div>
+                
+                <!-- Hotel Base -->
+                <div class="station-node col-start-2 relative">
+                    <span class="text-4xl mb-1 animate-pulse">🏨</span>
+                    <span class="bg-orange-100 px-3 py-2 rounded-lg text-orange-800 font-bold border-2 border-orange-400">您的飯店</span>
+                    <span class="text-xs text-gray-500 mt-1">惠美須町 / 動物園前</span>
+                </div>
+                
+                <!-- Deep South -->
+                <div class="col-start-2 line-v line-midosuji h-8"></div>
+                <div class="station-node col-start-2">
+                    <span class="text-3xl mb-1">🗼</span>
+                    <span class="bg-indigo-100 px-2 py-1 rounded-lg text-indigo-800">通天閣/阿倍野</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Stats -->
+        <div id="tab-stats" class="tab-content hidden p-6 page-break">
+            <h2 class="text-2xl font-bold text-pink-500 mb-2 text-center">📊 行程時間佔比分析</h2>
+            <p class="text-sm text-gray-600 mb-6 text-center">讓您了解本次旅行的節奏與重心。</p>
+            
+            <div class="chart-container">
+                <canvas id="timeChart"></canvas>
+            </div>
+            
+            <div class="mt-8 space-y-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-pink-500 mb-1">👩‍💻 規劃師叮嚀：</h3>
+                    <ul class="text-sm text-gray-600 space-y-2 list-disc pl-4">
+                        <li><b>交通：</b> 第二天前往勝尾寺路程較遠，已為您安排搭乘最新開通的「北大阪急行延伸線」至「箕面萱野站」，能省下近30分鐘！</li>
+                        <li><b>美食：</b> 您挑選的餐廳皆為排隊名店，已將用餐時間稍微錯開尖峰（如提早吃午餐、晚點吃宵夜）。</li>
+                        <li><b>節奏：</b> 第一天較為緊湊，第二天需早起。建議穿著舒適好走的運動鞋！</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Print/PDF Button (Hidden in Print) -->
+        <button onclick="window.print()" class="no-print fixed bottom-6 right-6 bg-pink-500 text-white p-4 rounded-full shadow-lg hover:bg-pink-600 transition-transform transform hover:scale-110 z-50 flex items-center justify-center">
+            <span class="text-2xl mr-2">📄</span> <span class="font-bold">下載 PDF</span>
+        </button>
+
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // Itinerary Data Structure
+        const itineraryData = [
+            {
+                dateTitle: "Day 1 - 06/12 (四) 歷史與繁華之夜",
+                events: [
+                    { time: "15:00", title: "飯店出發", icon: "🧳", type: "transit", desc: "抵達 Tanimachikun Star Hotel 放下行李，輕裝出發！", transit: "🚶 步行前往惠美須町站" },
+                    { time: "15:30", title: "大阪城天守閣 + 御座船", icon: "🏯", type: "spot", desc: "換上輕鬆的心情，搭乘御座船從護城河仰望壯麗的天守閣。(最後搭船時間通常為16:30，需把握)", transit: "🚇 惠美須町(堺筋線) ➔ 堺筋本町(轉中央線) ➔ 谷町四丁目 (約25分)" },
+                    { time: "18:00", title: "難波公園 Namba Parks", icon: "🛍️", type: "spot", desc: "感受峽谷般的都市綠洲建築，享受傍晚的購物時光。", transit: "🚇 谷町四丁目(中央線) ➔ 本町(轉御堂筋線) ➔ 難波 (約15分)" },
+                    { time: "19:30", title: "晚餐：Gyutan YOSHIJI", icon: "🥩", type: "food", desc: "心齋橋炭火烤牛舌名店，慰勞第一天的辛勞！", transit: "🚶 沿著心齋橋筋商店街步行約10分鐘" },
+                    { time: "21:00", title: "道頓堀 / 心齋橋 漫步", icon: "🏃‍♂️", type: "spot", desc: "與固力果跑跑人合影，感受大阪最鮮豔的霓虹夜生活。", transit: "🚶 就在旁邊！" },
+                    { time: "22:00", title: "宵夜：next shikaku", icon: "🍜", type: "food", desc: "體驗視覺與味覺雙重衝擊的牡蠣白湯拉麵。", transit: "🚶 難波周邊步行抵達" }
+                ]
+            },
+            {
+                dateTitle: "Day 2 - 06/13 (五) 尋幽、科技與絕景",
+                events: [
+                    { time: "07:00", title: "木津市場 早餐", icon: "🍣", type: "food", desc: "在地人的廚房！來碗新鮮的海鮮丼或水果開啟一天。", transit: "🚶 從飯店步行約15分鐘，或搭地鐵一站至大國町" },
+                    { time: "09:00", title: "勝尾寺 (達摩寺)", icon: "⛩️", type: "spot", desc: "被滿滿祈願達摩包圍的震撼絕景。早去空氣清新且避開人潮。", transit: "🚇 大國町(御堂筋線/直通北急) ➔ 箕面萱野站 ➔ 轉乘公車 (共約1小時)" },
+                    { time: "12:00", title: "NIFREL 活著的博物館", icon: "🐠", type: "spot", desc: "結合水族館與動物園的新型態體驗，近距離觀賞白老虎！", transit: "🚌 公車回千里中央站 ➔ 轉大阪單軌電車 ➔ 萬博紀念公園站 (約30分)" },
+                    { time: "14:30", title: "梅田遲午餐：拉麵+章魚燒", icon: "🐙", type: "food", desc: "連吃兩家必吃：LUCUA裡的『人類みな麺類』與高架橋下的『Hanadako』。", transit: "🚝 萬博紀念公園(單軌) ➔ 千里中央(轉北急/御堂筋線) ➔ 梅田 (約40分)" },
+                    { time: "15:30", title: "LINKS UMEDA 購物", icon: "🎁", type: "spot", desc: "超大型複合商場，Yodobashi、扭蛋、藥妝一次買齊。", transit: "🚶 位於梅田站正上方" },
+                    { time: "17:30", title: "阿倍野 Harukas 300", icon: "🌇", type: "spot", desc: "日本第一高樓觀景台，捕捉從黃昏到百萬夜景的變化。", transit: "🚇 梅田(御堂筋線) ➔ 天王寺 (約15分)" },
+                    { time: "19:00", title: "通天閣 / 新世界", icon: "🗼", type: "spot", desc: "回到飯店附近，感受充滿昭和復古風情的下町氛圍。", transit: "🚶 從天王寺步行約15分鐘" },
+                    { time: "20:00", title: "晚餐：福太郎 / 太郎次郎", icon: "🥞", type: "food", desc: "搭車回難波/千日前。吃大阪燒『福太郎』或天婦羅『Tempura Tarojiro』畫下完美句點！", transit: "🚇 動物園前(御堂筋線) ➔ 難波 (約5分)" }
+                ]
+            }
+        ];
+
+        // Function to render the timeline
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            let html = '';
+
+            itineraryData.forEach((day) => {
+                // Day Header
+                html += `
+                    <div class="relative z-10 mb-8 mt-4 pl-12 pr-4 page-break">
+                        <div class="bg-pink-500 text-white font-bold py-2 px-4 rounded-xl shadow-md inline-block text-lg">
+                            ${day.dateTitle}
+                        </div>
+                    </div>
+                `;
+
+                day.events.forEach((event, index) => {
+                    const isLast = index === day.events.length - 1;
+                    const cardColor = event.type === 'food' ? 'bg-yellow-50 border-yellow-200' : 
+                                      event.type === 'transit' ? 'bg-gray-50 border-gray-200' : 'bg-white border-pink-100';
+                    const titleColor = event.type === 'food' ? 'text-yellow-700' : 'text-gray-800';
+
+                    html += `
+                        <div class="relative z-10 mb-8 pl-12 pr-4 timeline-card group">
+                            <!-- Timeline Dot -->
+                            <div class="absolute left-[18px] top-4 w-4 h-4 rounded-full bg-white border-4 border-pink-500 shadow-sm group-hover:scale-125 transition-transform"></div>
+                            
+                            <!-- Card Content -->
+                            <div class="${cardColor} rounded-2xl p-4 shadow-sm border hover:shadow-md transition-shadow relative overflow-hidden">
+                                <!-- Background Icon Watermark -->
+                                <div class="absolute -right-4 -bottom-6 text-6xl opacity-10 grayscale">${event.icon}</div>
+                                
+                                <div class="flex items-start justify-between relative z-10">
+                                    <div class="flex-1">
+                                        <div class="flex items-center mb-1">
+                                            <span class="bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded-md mr-2">${event.time}</span>
+                                            <h3 class="text-xl font-bold ${titleColor}">${event.icon} ${event.title}</h3>
+                                        </div>
+                                        <p class="text-gray-600 text-sm mt-2 font-medium">${event.desc}</p>
+                                        
+                                        <!-- Small Map / Transit Hint -->
+                                        <div class="mt-3 bg-white/60 p-2 rounded-lg border border-gray-200 text-xs text-gray-700 flex items-center shadow-inner">
+                                            <span class="mr-2">🧭</span>
+                                            <span class="leading-tight">${event.transit}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+            container.innerHTML += html;
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Show target content
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            // Reset button styles
+            const btns = ['timeline', 'map', 'stats'];
+            btns.forEach(id => {
+                const btn = document.getElementById(`btn-${id}`);
+                btn.classList.remove('text-pink-500', 'border-pink-500');
+                btn.classList.add('text-gray-400', 'border-transparent');
+            });
+            
+            // Set active button style
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.remove('text-gray-400', 'border-transparent');
+            activeBtn.classList.add('text-pink-500', 'border-pink-500');
+        }
+
+        // Initialize Chart.js
+        function initChart() {
+            const ctx = document.getElementById('timeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['逛街景點 (45%)', '品嚐美食 (30%)', '交通移動 (20%)', '休息緩衝 (5%)'],
+                    datasets: [{
+                        data: [45, 30, 20, 5],
+                        backgroundColor: [
+                            '#F472B6', // Pink
+                            '#FBBF24', // Yellow
+                            '#9CA3AF', // Gray
+                            '#A7F3D0'  // Green
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Nunito', size: 12 } } }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        // Initialization
+        window.onload = () => {
+            renderTimeline();
+            initChart();
+        };
+    </script>
+</body>
+</html>
