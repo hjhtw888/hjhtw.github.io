@@ -2,570 +2,544 @@
 <html lang="zh-TW" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 大阪親子關西暢遊行 | 客製化行程</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 大阪親子歡樂六日遊 | 專屬行程企劃</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                    },
+                    colors: {
+                        'kawaii-bg': '#FFFBF0', // 溫暖米白背景
+                        'kawaii-pink': '#FF8E8B', // 柔和珊瑚粉
+                        'kawaii-green': '#88C273', // 抹茶綠
+                        'kawaii-blue': '#79C0DB', // 晴空藍
+                        'kawaii-yellow': '#F9D949', // 活潑黃
+                        'kawaii-text': '#4A4A4A', // 深灰字體，易於閱讀
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #FFFBF0; color: #4A4A4A; }
-        
-        /* Custom Scrollbar for cuteness */
+        /* 自訂滾動條 */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #FFFBF0; }
-        ::-webkit-scrollbar-thumb { background: #FFB5B5; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #FF9494; }
+        ::-webkit-scrollbar-thumb { background: #FF8E8B; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff7370; }
 
-        /* Chart Container Requirements */
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 400px;
+        /* 時間軸樣式 */
+        .timeline-container { position: relative; }
+        .timeline-container::before {
+            content: ''; position: absolute; top: 0; bottom: 0; left: 24px; width: 4px;
+            background-color: #ffe4e4; border-radius: 2px;
         }
-        @media (min-width: 768px) { .chart-container { height: 350px; } }
-
-        /* Cute decorative elements using CSS */
-        .cute-border { border: 3px dashed #FFB5B5; }
-        .cute-shadow { box-shadow: 4px 4px 0px #FFD1D1; transition: all 0.2s ease; }
-        .cute-shadow:hover { box-transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #FFB5B5; }
+        .timeline-item { position: relative; padding-left: 60px; margin-bottom: 2rem; }
+        .timeline-icon {
+            position: absolute; left: 10px; top: 0; width: 32px; height: 32px;
+            border-radius: 50%; background-color: #FF8E8B; display: flex;
+            align-items: center; justify-content: center; font-size: 1.2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 10;
+        }
         
-        .pill-btn { @apply px-4 py-2 rounded-full font-bold text-sm md:text-base transition-colors duration-200; }
-        .active-day-btn { @apply bg-rose-400 text-white shadow-md transform scale-105; }
-        .inactive-day-btn { @apply bg-white text-rose-400 border-2 border-rose-200 hover:bg-rose-50; }
-        
-        .active-filter { @apply bg-emerald-400 text-white border-emerald-400; }
-        .inactive-filter { @apply bg-white text-emerald-600 border-2 border-emerald-200 hover:bg-emerald-50; }
+        /* 隱藏未選取的區塊 */
+        .section-hidden { display: none; }
 
-        /* Timeline Dot */
-        .timeline-dot { content: ''; position: absolute; left: -11px; top: 6px; width: 20px; height: 20px; border-radius: 50%; background-color: #FFFBF0; border: 4px solid #FF9494; z-index: 10;}
+        /* 確保點擊連結有視覺回饋 */
+        a:active { transform: scale(0.98); }
     </style>
 </head>
-<body class="antialiased">
+<body class="bg-kawaii-bg text-kawaii-text font-sans antialiased text-lg md:text-base selection:bg-kawaii-pink selection:text-white">
 
-    <!-- Chosen Palette: Soft Japanese Cute (Beige #FFFBF0, Rose #FF9494, Emerald #34D399, Sky #38BDF8) -->
-    
-    <!-- Application Structure Plan: 
-         1. Hero Cover: Sets the mood (Japanese cute style) with basic trip info.
-         2. Sticky Nav: For easy access to sections, essential for SPAs.
-         3. Trip Overview: Flights & Accommodation clearly presented in cards.
-         4. Daily Itinerary (Timeline): The core interactive section. Uses tabs to switch days, displaying a vertical timeline. This avoids overwhelming the user with all 6 days at once. Each node contains transport, time, and external links.
-         5. Transport Analysis (Chart): A Chart.js comparison of transport options to aid decision-making, placed logically after the itinerary.
-         6. Food Map: Grid layout with category filters (Meals, Snacks, Desserts) for quick selection based on current craving.
-         7. Preparation & Souvenirs: Useful lists grouped at the end. 
-         This structure chunks information logically, allowing the user to focus on specific planning aspects without cognitive overload. -->
-
+    <!-- Chosen Palette: Kawaii Pastel (Warm Beige #FFFBF0, Coral Pink #FF8E8B, Matcha Green #88C273, Text Dark Gray #4A4A4A) -->
+    <!-- Application Structure Plan: The SPA is structured logically for a traveler. It starts with a welcoming cover and quick overview (flights/hotels), uses a Tabbed interface for the daily itinerary to prevent a massively long page, and separates out Food, Souvenirs, and Prep into distinct functional views. This allows users to quickly jump to what they need at the moment (e.g., checking the food map while walking around). -->
     <!-- Visualization & Content Choices: 
-         - Daily Itinerary -> Goal: Organize & Change -> Viz: Interactive Timeline (HTML/CSS + JS Tabs) -> Justification: Chronological flow is best for daily planning. Tab filtering keeps the page concise.
-         - Transport Options -> Goal: Compare -> Viz: Chart.js Bar Chart -> Justification: Visual comparison of Time vs Cost helps quick decision-making. No SVG used.
-         - Food Recommendations -> Goal: Organize & Filter -> Viz: CSS Grid with JS Category Filters -> Justification: Allows user to browse visually and filter by type (sweet/savory).
-         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All icons are emojis or CSS shapes. -->
+         1. Overview Chart -> Goal: Show time distribution -> Viz: Doughnut Chart (Chart.js) -> Interactive, visualizes balance of activities vs transit.
+         2. Itinerary -> Goal: Guide daily steps -> Viz: Vertical Timeline -> Clear chronological flow with distinct icons for transport vs spots.
+         3. Food Map -> Goal: Choices -> Viz: Grid of cards with Category Filters -> User can narrow down based on cravings.
+         All visualizations use standard HTML/CSS/Tailwind and Chart.js. Confirmed no SVG or Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
-    <!-- ================= HERO SECTION ================= -->
-    <header class="relative bg-rose-100 overflow-hidden min-h-[60vh] flex items-center justify-center pt-10 pb-20 px-4">
-        <!-- CSS Decorative Background Elements -->
-        <div class="absolute top-10 left-10 text-6xl opacity-20 transform -rotate-12">🌸</div>
-        <div class="absolute bottom-20 right-10 text-6xl opacity-20 transform rotate-12">🏯</div>
-        <div class="absolute top-1/4 right-1/4 text-5xl opacity-20">🍡</div>
-        <div class="absolute bottom-1/4 left-1/4 text-5xl opacity-20">🎢</div>
-        
-        <div class="relative z-10 bg-white/90 backdrop-blur-sm p-6 md:p-10 rounded-3xl cute-shadow max-w-2xl text-center cute-border">
-            <div class="inline-block bg-rose-400 text-white px-4 py-1 rounded-full text-sm font-bold mb-4 tracking-wider">
-                FAMILY TRIP 2026
-            </div>
-            <h1 class="text-3xl md:text-5xl font-black text-rose-500 mb-4 leading-tight">
-                初夏的大阪京都<br><span class="text-amber-700">親子同樂小旅行</span> ✈️
-            </h1>
-            <p class="text-lg md:text-xl text-gray-600 mb-6 font-medium">六天五夜 • 歡笑滿載的關西時光</p>
-            
-            <div class="flex flex-wrap justify-center gap-4 text-sm md:text-base font-bold text-amber-800">
-                <div class="bg-amber-100 px-4 py-2 rounded-lg flex items-center gap-2">📅 2026/06/12 - 06/17</div>
-                <div class="bg-amber-100 px-4 py-2 rounded-lg flex items-center gap-2">📍 大阪 • 京都</div>
-                <div class="bg-amber-100 px-4 py-2 rounded-lg flex items-center gap-2">👨‍👩‍👧 親子 (國小)</div>
-            </div>
-        </div>
-    </header>
-
-    <!-- ================= NAVIGATION ================= -->
-    <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-rose-100">
-        <div class="max-w-6xl mx-auto px-4 overflow-x-auto whitespace-nowrap hide-scrollbar">
-            <ul class="flex justify-start md:justify-center gap-2 md:gap-8 py-3 text-sm md:text-base font-bold text-gray-600">
-                <li><a href="#overview" class="hover:text-rose-500 px-2 py-1 block">🛫 行程總覽</a></li>
-                <li><a href="#itinerary" class="hover:text-rose-500 px-2 py-1 block">🗺️ 每日路線</a></li>
-                <li><a href="#food" class="hover:text-rose-500 px-2 py-1 block">🍣 必吃美食</a></li>
-                <li><a href="#prep" class="hover:text-rose-500 px-2 py-1 block">🛍️ 伴手禮&準備</a></li>
+    <!-- 固定頂部導覽列 -->
+    <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50 border-b-2 border-kawaii-pink">
+        <div class="max-w-5xl mx-auto px-4 overflow-x-auto whitespace-nowrap hide-scrollbar">
+            <ul class="flex space-x-1 py-3 text-base md:text-lg font-bold" id="nav-menu">
+                <li><button data-target="home" class="nav-btn px-4 py-2 rounded-full bg-kawaii-pink text-white transition-colors">首頁</button></li>
+                <li><button data-target="overview" class="nav-btn px-4 py-2 rounded-full hover:bg-rose-50 text-kawaii-text transition-colors">總覽</button></li>
+                <li><button data-target="itinerary" class="nav-btn px-4 py-2 rounded-full hover:bg-rose-50 text-kawaii-text transition-colors">每日行程</button></li>
+                <li><button data-target="food" class="nav-btn px-4 py-2 rounded-full hover:bg-rose-50 text-kawaii-text transition-colors">美食推薦</button></li>
+                <li><button data-target="souvenirs" class="nav-btn px-4 py-2 rounded-full hover:bg-rose-50 text-kawaii-text transition-colors">伴手禮</button></li>
+                <li><button data-target="prep" class="nav-btn px-4 py-2 rounded-full hover:bg-rose-50 text-kawaii-text transition-colors">行前準備</button></li>
             </ul>
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto px-4 py-8 space-y-16">
+    <main class="pt-20 pb-20 max-w-5xl mx-auto px-4">
 
-        <!-- ================= OVERVIEW SECTION ================= -->
-        <section id="overview" class="scroll-mt-20">
-            <div class="text-center mb-8">
-                <h2 class="text-2xl md:text-3xl font-black text-amber-800 flex items-center justify-center gap-2">
-                    <span>🛫</span> 航班與住宿資訊
-                </h2>
-                <p class="text-gray-500 mt-2 text-sm md:text-base">精打細算，住得舒適，玩得開心！</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Flights -->
-                <div class="bg-white p-6 rounded-2xl cute-shadow border-2 border-sky-100">
-                    <h3 class="text-xl font-bold text-sky-600 mb-4 flex items-center gap-2">✈️ 航班資訊 (泰越捷 VZ566)</h3>
-                    <div class="space-y-4">
-                        <div class="bg-sky-50 p-3 rounded-lg">
-                            <span class="text-xs font-bold text-sky-400 block mb-1">去程 6/12 (五)</span>
-                            <div class="flex justify-between items-center font-bold text-gray-700">
-                                <span>TPE 07:30</span>
-                                <span class="text-sky-300">━━━►</span>
-                                <span>KIX 11:10</span>
-                            </div>
-                        </div>
-                        <div class="bg-sky-50 p-3 rounded-lg">
-                            <span class="text-xs font-bold text-sky-400 block mb-1">回程 6/17 (三)</span>
-                            <div class="flex justify-between items-center font-bold text-gray-700">
-                                <span>KIX 12:25</span>
-                                <span class="text-sky-300">━━━►</span>
-                                <span>TPE 14:25</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hotels -->
-                <div class="bg-white p-6 rounded-2xl cute-shadow border-2 border-emerald-100">
-                    <h3 class="text-xl font-bold text-emerald-600 mb-4 flex items-center gap-2">🏨 住宿安排</h3>
-                    <div class="space-y-4">
-                        <div class="bg-emerald-50 p-3 rounded-lg text-sm">
-                            <span class="font-bold text-emerald-600 block mb-1">Day 1-3: 市區探索基地</span>
-                            <p class="font-bold text-gray-800">Hotel Abitare Namba West</p>
-                            <p class="text-gray-500 text-xs mt-1">🕒 6/12 15:00 In - 6/15 11:00 Out</p>
-                            <a href="https://maps.google.com/?q=Hotel+Abitare+Namba+West" target="_blank" class="text-blue-500 hover:underline text-xs mt-1 inline-block">📍 難波區地圖</a>
-                        </div>
-                        <div class="bg-emerald-50 p-3 rounded-lg text-sm">
-                            <span class="font-bold text-emerald-600 block mb-1">Day 4-5: 暢玩樂園首選</span>
-                            <p class="font-bold text-gray-800">Hotel Kintetsu Universal City</p>
-                            <p class="text-gray-500 text-xs mt-1">🕒 6/15 15:00 In - 6/17 11:00 Out</p>
-                            <a href="https://maps.google.com/?q=Hotel+Kintetsu+Universal+City" target="_blank" class="text-blue-500 hover:underline text-xs mt-1 inline-block">📍 USJ旁地圖</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ================= ITINERARY SECTION ================= -->
-        <section id="itinerary" class="scroll-mt-20">
-            <div class="text-center mb-6">
-                <h2 class="text-2xl md:text-3xl font-black text-amber-800 flex items-center justify-center gap-2">
-                    <span>🗺️</span> 每日動線規劃
-                </h2>
-                <p class="text-gray-500 mt-2 text-sm md:text-base">考量親子體力與飯店位置，安排最順暢的專屬路線。</p>
-            </div>
-
-            <!-- Day Selector -->
-            <div class="flex overflow-x-auto pb-4 mb-6 gap-2 hide-scrollbar justify-start md:justify-center px-2" id="day-selector">
-                <!-- Generated by JS -->
-            </div>
-
-            <!-- Timeline Container -->
-            <div class="bg-white p-4 md:p-8 rounded-2xl cute-shadow border-2 border-rose-100 min-h-[400px]">
-                <h3 id="current-day-title" class="text-xl md:text-2xl font-black text-rose-500 mb-6 text-center border-b-2 border-rose-100 pb-4">
-                    載入中...
-                </h3>
+        <!-- 首頁/封面設計 -->
+        <section id="home" class="min-h-[80vh] flex flex-col justify-center items-center text-center animate-fade-in section-active">
+            <div class="bg-white p-8 rounded-3xl shadow-xl border-4 border-kawaii-pink relative max-w-2xl w-full">
+                <div class="absolute -top-10 -left-6 text-6xl transform -rotate-12">🌸</div>
+                <div class="absolute -bottom-6 -right-6 text-6xl transform rotate-12">🏯</div>
                 
-                <div id="timeline-container" class="relative border-l-4 border-rose-200 ml-3 md:ml-6 space-y-8 pb-4">
-                    <!-- Generated by JS -->
+                <h2 class="text-xl md:text-2xl text-kawaii-green font-bold mb-2 tracking-widest">2026 SUMMER TRIP</h2>
+                <h1 class="text-4xl md:text-5xl font-black text-kawaii-pink mb-6 leading-tight">
+                    大阪京都<br>親子歡樂六日遊
+                </h1>
+                
+                <div class="bg-rose-50 p-4 rounded-2xl mb-6 inline-block">
+                    <p class="text-xl font-bold flex items-center justify-center gap-2">
+                        <span>✈️ 台灣出發</span> 
+                        <span class="text-gray-400">➔</span> 
+                        <span>🇯🇵 大阪關西</span>
+                    </p>
+                    <p class="text-lg mt-2 font-medium">2026/6/12 (五) — 2026/6/17 (三)</p>
+                </div>
+
+                <p class="text-gray-600 mb-8 max-w-md mx-auto text-lg">
+                    融合城市探險、歷史文化、自然美景與樂園狂歡的完美親子假期。準備好創造美好回憶了嗎？
+                </p>
+
+                <button onclick="document.querySelector('[data-target=\'overview\']').click()" class="bg-kawaii-pink text-white px-8 py-4 rounded-full text-xl font-bold shadow-lg hover:bg-rose-500 hover:shadow-xl transition-all transform hover:-translate-y-1">
+                    開始探索行程 🚀
+                </button>
+            </div>
+        </section>
+
+        <!-- 行程總覽 -->
+        <section id="overview" class="section-hidden pt-8">
+            <div class="mb-8">
+                <h2 class="text-3xl font-black text-kawaii-pink mb-2 flex items-center gap-2"><span>📌</span> 行程總覽</h2>
+                <p class="text-gray-600">航班、住宿與時間規劃一覽</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- 航班資訊 -->
+                <div class="bg-white p-6 rounded-2xl shadow-md border-l-8 border-kawaii-blue">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2"><span>✈️</span> 航班資訊 (泰越捷航空)</h3>
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 p-4 rounded-xl">
+                            <span class="inline-block bg-kawaii-blue text-white text-sm px-2 py-1 rounded mb-2 font-bold">去程 VZ566</span>
+                            <p class="font-medium text-lg">6/12 (五) 07:30 桃園 (TPE)</p>
+                            <p class="text-gray-500">➔ 11:10 關西 (KIX)</p>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-xl">
+                            <span class="inline-block bg-kawaii-blue text-white text-sm px-2 py-1 rounded mb-2 font-bold">回程 VZ567</span>
+                            <p class="font-medium text-lg">6/17 (三) 12:25 關西 (KIX)</p>
+                            <p class="text-gray-500">➔ 14:25 桃園 (TPE)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 住宿資訊 -->
+                <div class="bg-white p-6 rounded-2xl shadow-md border-l-8 border-kawaii-yellow">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2"><span>🏨</span> 住宿資訊</h3>
+                    <div class="space-y-4">
+                        <div class="bg-yellow-50 p-4 rounded-xl">
+                            <span class="inline-block bg-kawaii-yellow text-kawaii-text text-sm px-2 py-1 rounded mb-2 font-bold">前三晚: 6/12 - 6/15</span>
+                            <p class="font-bold text-lg text-kawaii-pink">Hotel Abitare Namba West</p>
+                            <p class="text-sm text-gray-600 mt-1">📍 大阪市浪速區幸町2-2-44</p>
+                            <a href="https://maps.app.goo.gl/..." target="_blank" class="text-sm text-blue-500 hover:underline mt-2 inline-block">打開 Google Maps</a>
+                        </div>
+                        <div class="bg-yellow-50 p-4 rounded-xl">
+                            <span class="inline-block bg-kawaii-yellow text-kawaii-text text-sm px-2 py-1 rounded mb-2 font-bold">後兩晚: 6/15 - 6/17</span>
+                            <p class="font-bold text-lg text-kawaii-pink">Hotel Kintetsu Universal City</p>
+                            <p class="text-sm text-gray-600 mt-1">📍 大阪市此花區島屋6-2-68</p>
+                            <a href="https://maps.app.goo.gl/..." target="_blank" class="text-sm text-blue-500 hover:underline mt-2 inline-block">打開 Google Maps</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 時間分配圖表 -->
+            <div class="bg-white p-6 rounded-2xl shadow-md">
+                <h3 class="text-xl font-bold mb-4 text-center">行程時間分配預估</h3>
+                <!-- Chart Container as required by styling constraints -->
+                <div class="chart-container w-full max-w-xl mx-auto relative h-[40vh] max-h-80 sm:h-80">
+                    <canvas id="timeAllocationChart"></canvas>
                 </div>
             </div>
         </section>
 
-        <!-- ================= TRANSPORT CHART SECTION ================= -->
-        <section class="scroll-mt-20 bg-white p-6 rounded-2xl cute-shadow border-2 border-amber-100">
-            <div class="text-center mb-6">
-                <h2 class="text-xl md:text-2xl font-black text-amber-800 flex items-center justify-center gap-2">
-                    <span>🚆</span> 交通工具評估分析
-                </h2>
-                <p class="text-gray-500 mt-2 text-sm">關西機場 (KIX) 前往 難波 (Namba) 交通比較</p>
+        <!-- 每日行程 -->
+        <section id="itinerary" class="section-hidden pt-8">
+            <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-black text-kawaii-pink mb-2 flex items-center gap-2"><span>🗺️</span> 每日行程</h2>
+                    <p class="text-gray-600">精心策劃的最佳路線，點擊天數切換</p>
+                </div>
+                <!-- 星期切換按鈕 -->
+                <div class="flex flex-wrap gap-2" id="day-tabs">
+                    <!-- JS 動態生成 -->
+                </div>
             </div>
-            
-            <!-- REQUIRED CHART CONTAINER -->
-            <div class="chart-container">
-                <canvas id="transportChart"></canvas>
+
+            <div class="bg-white p-4 md:p-8 rounded-3xl shadow-lg border-2 border-rose-100">
+                <h3 id="current-day-title" class="text-2xl font-bold text-kawaii-text mb-6 pb-2 border-b-2 border-gray-100">Day 1</h3>
+                
+                <!-- 時間軸容器 -->
+                <div class="timeline-container" id="timeline-content">
+                    <!-- JS 動態生成內容 -->
+                </div>
             </div>
-            <p class="text-center text-xs text-gray-400 mt-4">* 費用以日圓(JPY)估算，時間為預估行車時間，實際情況可能依班次變動。推薦搭乘南海電鐵特急Rapi:t，對帶小孩的家庭最舒適方便。</p>
         </section>
 
-        <!-- ================= FOOD MAP SECTION ================= -->
-        <section id="food" class="scroll-mt-20">
-            <div class="text-center mb-8">
-                <h2 class="text-2xl md:text-3xl font-black text-amber-800 flex items-center justify-center gap-2">
-                    <span>🤤</span> 必吃美食地圖
-                </h2>
-                <p class="text-gray-500 mt-2 text-sm md:text-base">精選高CP值、近2年熱門推薦，滿足全家大小的胃！</p>
+        <!-- 美食推薦 -->
+        <section id="food" class="section-hidden pt-8">
+            <div class="mb-8 text-center">
+                <h2 class="text-3xl font-black text-kawaii-pink mb-2"><span>🍱</span> 必吃美食地圖</h2>
+                <p class="text-gray-600">近兩年網路推薦與指定必吃，滿足全家味蕾</p>
+                
+                <div class="flex flex-wrap justify-center gap-2 mt-4" id="food-filters">
+                    <button class="food-filter-btn active bg-kawaii-pink text-white px-4 py-1 rounded-full border border-kawaii-pink" data-filter="all">全部</button>
+                    <button class="food-filter-btn bg-white text-kawaii-text px-4 py-1 rounded-full border border-gray-300" data-filter="正餐">正餐拉麵</button>
+                    <button class="food-filter-btn bg-white text-kawaii-text px-4 py-1 rounded-full border border-gray-300" data-filter="小吃">大阪小吃</button>
+                    <button class="food-filter-btn bg-white text-kawaii-text px-4 py-1 rounded-full border border-gray-300" data-filter="甜點">甜點咖啡</button>
+                </div>
             </div>
 
-            <!-- Filters -->
-            <div class="flex flex-wrap justify-center gap-2 mb-8" id="food-filters">
-                <button class="pill-btn active-filter" data-filter="all">全部</button>
-                <button class="pill-btn inactive-filter" data-filter="meal">🍱 正餐必吃</button>
-                <button class="pill-btn inactive-filter" data-filter="snack">🐙 特色小吃</button>
-                <button class="pill-btn inactive-filter" data-filter="dessert">🍰 甜點咖啡</button>
-            </div>
-
-            <!-- Food Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="food-grid">
-                <!-- Generated by JS -->
+                <!-- JS 動態生成 -->
             </div>
         </section>
 
-        <!-- ================= SOUVENIRS & PREP SECTION ================= -->
-        <section id="prep" class="scroll-mt-20 grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Souvenirs -->
-            <div class="bg-rose-50 p-6 rounded-2xl border-2 border-rose-200">
-                <h2 class="text-xl md:text-2xl font-black text-rose-600 mb-4 flex items-center gap-2">
-                    🎁 2026 最新伴手禮推薦
-                </h2>
-                <ul class="space-y-3 text-gray-700 text-sm md:text-base" id="souvenir-list">
-                    <!-- Generated by JS -->
-                </ul>
+        <!-- 伴手禮 -->
+        <section id="souvenirs" class="section-hidden pt-8">
+            <div class="mb-8">
+                <h2 class="text-3xl font-black text-kawaii-pink mb-2 flex items-center gap-2"><span>🛍️</span> 2026 必買伴手禮清單</h2>
+                <p class="text-gray-600">網路聲量最高，送禮自用兩相宜</p>
             </div>
 
-            <!-- Packing List -->
-            <div class="bg-sky-50 p-6 rounded-2xl border-2 border-sky-200">
-                <h2 class="text-xl md:text-2xl font-black text-sky-600 mb-4 flex items-center gap-2">
-                    🧳 行前準備清單
-                </h2>
-                <div class="space-y-4 text-sm md:text-base text-gray-700">
-                    <div>
-                        <h4 class="font-bold text-sky-700 border-b border-sky-200 pb-1 mb-2">📄 必備文件與票券</h4>
-                        <ul class="list-none space-y-1 pl-1">
-                            <li><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-sky-500 w-4 h-4"> 護照 (效期需6個月以上)</label></li>
-                            <li><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-sky-500 w-4 h-4"> Visit Japan Web 註冊與截圖QR Code</label></li>
-                            <li><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-sky-500 w-4 h-4"> 實體/eSIM 網卡</label></li>
-                            <li><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-sky-500 w-4 h-4"> 交通卡 (ICOCA/Suica綁定Apple Pay)</label></li>
-                            <li><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-sky-500 w-4 h-4"> USJ 門票與提早入園/快速通關憑證</label></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-sky-700 border-b border-sky-200 pb-1 mb-2">👕 衣物與實用小物 (6月初夏)</h4>
-                        <ul class="list-none space-y-1 pl-1">
-                            <li><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-sky-500 w-4 h-4"> 短袖為主，備薄外套 (早晚溫差/冷氣房)</label></li>
-                            <li><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-sky-500 w-4 h-4"> 好穿耐走的運動鞋 (極度重要！)</label></li>
-                            <li><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-sky-500 w-4 h-4"> 晴雨兩用傘 / 兒童雨衣</label></li>
-                            <li><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-sky-500 w-4 h-4"> 行動電源與充電線 (日本插座與台灣同為110V/雙平腳，無需轉接頭)</label></li>
-                            <li><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-sky-500 w-4 h-4"> 常備藥品 (腸胃藥、止痛藥、小孩退燒藥)</label></li>
-                            <li><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-sky-500 w-4 h-4"> 環保購物袋 (日本大多提袋需付費)</label></li>
-                        </ul>
-                    </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="souvenir-grid">
+                <!-- JS 動態生成 -->
+            </div>
+        </section>
+
+        <!-- 行前準備 -->
+        <section id="prep" class="section-hidden pt-8">
+            <div class="mb-8">
+                <h2 class="text-3xl font-black text-kawaii-pink mb-2 flex items-center gap-2"><span>🎒</span> 行前準備與行李清單</h2>
+                <p class="text-gray-600">出發前點點名，安心出遊</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-2xl shadow border-t-4 border-kawaii-pink">
+                    <h3 class="text-xl font-bold mb-4 text-kawaii-text">重要文件與電子用品</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-kawaii-pink"><span class="text-lg">護照 (確認效期>6個月)</span></li>
+                        <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-kawaii-pink"><span class="text-lg">機票與飯店預訂確認信</span></li>
+                        <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-kawaii-pink"><span class="text-lg">Visit Japan Web (VJW) QR Code 截圖</span></li>
+                        <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-kawaii-pink"><span class="text-lg">日幣現金 & 信用卡 (建議綁定Apple Pay/Suica)</span></li>
+                        <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-kawaii-pink"><span class="text-lg">網卡 (eSIM/實體SIM) 或 Wi-Fi 分享器</span></li>
+                        <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-kawaii-pink"><span class="text-lg">行動電源與充電線 (必備！)</span></li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow border-t-4 border-kawaii-green">
+                    <h3 class="text-xl font-bold mb-4 text-kawaii-text">個人與兒童用品 (夏季)</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-kawaii-green"><span class="text-lg">好穿耐走的運動鞋 (每天破萬步)</span></li>
+                        <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-kawaii-green"><span class="text-lg">夏季輕薄衣物 + 一件薄外套 (早晚/冷氣房)</span></li>
+                        <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-kawaii-green"><span class="text-lg">防曬乳、帽子、陽傘、太陽眼鏡</span></li>
+                        <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-kawaii-green"><span class="text-lg">常備藥品 (腸胃藥、止痛藥、兒童退燒/感冒藥、OK繃)</span></li>
+                        <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-kawaii-green"><span class="text-lg">環保購物袋 (日本購物袋需付費)</span></li>
+                        <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 accent-kawaii-green"><span class="text-lg">休足時間/痠痛貼布 (晚上放鬆腳部)</span></li>
+                    </ul>
                 </div>
             </div>
         </section>
 
     </main>
 
-    <footer class="bg-amber-900 text-amber-100 text-center py-8 mt-12">
-        <p class="font-bold mb-2">Have a wonderful family trip to Osaka!</p>
-        <p class="text-xs opacity-70">Designed for 2026/06/12 - 06/17 Itinerary</p>
-    </footer>
-
-    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <!-- JavaScript 邏輯 -->
     <script>
-        // --- 1. Data Store ---
-        
+        // --- 核心資料區 ---
         const itineraryData = [
             {
-                id: 'day1', date: '6/12 (五)', title: '抵達大阪，道頓堀初體驗',
-                desc: '輕鬆抵達，熟悉環境，享受大阪道地美食。',
+                id: 'day1', date: '6/12 (五)', title: '抵達大阪・南區商圈初探',
                 events: [
-                    { time: '11:10', type: 'flight', title: '抵達關西機場 (KIX)', desc: '通關領行李約需1小時。', stay: '-' },
-                    { time: '12:30', type: 'transport', title: '搭乘南海電鐵特急', desc: '前往難波站 (約40分鐘)。', stay: '-', link: 'https://maps.google.com/?q=Kansai+Airport+Station' },
-                    { time: '13:30', type: 'food', title: '午餐：next shikaku', desc: '特色牡蠣拉麵，難波周邊先填飽肚子。', stay: '1.5 hr', link: 'https://maps.google.com/?q=next+shikaku+osaka' },
-                    { time: '15:00', type: 'hotel', title: '入住 Hotel Abitare', desc: '放行李稍作休息。', stay: '1 hr', link: 'https://maps.google.com/?q=Hotel+Abitare+Namba+West' },
-                    { time: '16:00', type: 'spot', title: '難波公園 (Namba Parks)', desc: '獨特峽谷建築商場，逛街購物。', stay: '2 hr', link: 'https://maps.google.com/?q=Namba+Parks' },
-                    { time: '18:30', type: 'spot', title: '心齋橋 & 道頓堀', desc: '看固力果跑跑人，感受大阪夜生活。', stay: '3 hr', link: 'https://maps.google.com/?q=Dotonbori+Glico+Sign' },
-                    { time: '19:30', type: 'food', title: '晚餐：福太郎大阪燒', desc: '來大阪必吃的經典美食！', stay: '1.5 hr', link: 'https://maps.google.com/?q=Fukutaro+Osaka' }
+                    { time: '11:10', type: 'flight', title: '抵達關西國際機場 (KIX)', desc: '辦理入境手續、領取行李。搭乘南海電鐵前往難波。', icon: '🛬' },
+                    { time: '15:00', type: 'hotel', title: 'Hotel Abitare Namba West 入住', desc: '放好行李，稍微休息準備出發。', icon: '🏨', map: 'https://www.google.com/maps/search/?api=1&query=Hotel+Abitare+Namba+West' },
+                    { time: '15:30', type: 'spot', title: '難波公園 (Namba Parks)', desc: '體驗城市綠洲商場，逛街購物。', icon: '🛍️', timeInfo: '停留 30分 (步行10-15分至此)', map: 'https://www.google.com/maps/search/?api=1&query=Namba+Parks' },
+                    { time: '16:00', type: 'spot', title: '日本橋 (動漫電器街)', desc: '感受大阪次文化，扭蛋、公仔店。', icon: '👾', timeInfo: '停留 1小時 (步行5分)', map: 'https://www.google.com/maps/search/?api=1&query=Nipponbashi+Osaka' },
+                    { time: '17:00', type: 'spot', title: '道頓堀', desc: '與固力果跑跑人合照，感受大阪熱情。', icon: '🏃‍♂️', timeInfo: '停留 1.5小時 (步行5分)', map: 'https://www.google.com/maps/search/?api=1&query=Dotonbori' },
+                    { time: '18:30', type: 'food', title: '心齋橋 (晚餐+逛街)', desc: '推薦晚餐：福太郎大阪燒 或 Gyutan Charcoal grilled YOSHIJI。飯後在心齋橋筋商店街血拼。', icon: '🥩', timeInfo: '停留 2小時 (步行5分)', map: 'https://www.google.com/maps/search/?api=1&query=Shinsaibashi+Suji' },
+                    { time: '20:30', type: 'hotel', title: '返回飯店', desc: '步行約10-15分回飯店休息，準備明日行程。', icon: '🌙' }
                 ]
             },
             {
-                id: 'day2', date: '6/13 (六)', title: '北大阪親子趣與浪漫夜景',
-                desc: '結合好運達摩與趣味水族館，晚上欣賞無敵夜景。',
+                id: 'day2', date: '6/13 (六)', title: '勝尾寺達摩・大阪城歷史與新世界',
                 events: [
-                    { time: '08:30', type: 'transport', title: '出發前往北大阪', desc: '搭乘御堂筋線接北大阪急行至千里中央轉公車。', stay: '-' },
-                    { time: '09:30', type: 'spot', title: '勝尾寺 (勝運之寺)', desc: '滿滿的可愛達摩，適合親子拍照祈福。', stay: '2.5 hr', link: 'https://maps.google.com/?q=Katsuo-ji+Temple' },
-                    { time: '13:00', type: 'spot', title: 'EXPOCITY & 午餐', desc: '西日本最大複合商場，在此享用午餐。', stay: '1.5 hr', link: 'https://maps.google.com/?q=EXPOCITY+Osaka' },
-                    { time: '14:30', type: 'spot', title: 'NIFREL 活著的海游館', desc: '結合水族館、動物園與美術館，孩子超愛。', stay: '2 hr', link: 'https://maps.google.com/?q=NIFREL' },
-                    { time: '17:30', type: 'spot', title: 'LINKS UMEDA', desc: '回到梅田商圈，超大型購物中心。', stay: '1.5 hr', link: 'https://maps.google.com/?q=LINKS+UMEDA' },
-                    { time: '19:00', type: 'food', title: '晚餐：Hanadako (はなだこ)', desc: '梅田站必吃超人氣蔥花章魚燒。', stay: '1 hr', link: 'https://maps.google.com/?q=Hanadako+Umeda' },
-                    { time: '20:30', type: 'spot', title: '阿倍野 HARUKAS 300', desc: '前往天王寺看大阪最美高空夜景。', stay: '1.5 hr', link: 'https://maps.google.com/?q=Abeno+Harukas' }
+                    { time: '08:30', type: 'transport', title: '出發前往北攝地區', desc: '地鐵轉乘北大阪急行至「千里中央」，再轉公車前往勝尾寺。', icon: '🚆' },
+                    { time: '10:00', type: 'spot', title: '勝尾寺 (達摩寺)', desc: '滿滿的祈福達摩，景色優美，適合親子拍照。求個必勝祈願！', icon: '👹', timeInfo: '停留 1.5小時', map: 'https://www.google.com/maps/search/?api=1&query=Katsuoji+Temple' },
+                    { time: '12:00', type: 'spot', title: 'NIFREL (活著的博物館)', desc: '位於EXPOCITY。結合水族館、動物園與美術館的新型態設施，小孩最愛。午餐可於EXPOCITY解決。', icon: '🐧', timeInfo: '停留 2.5小時 (含午餐)', map: 'https://www.google.com/maps/search/?api=1&query=NIFREL+Aquarium' },
+                    { time: '15:30', type: 'spot', title: '大阪城天守閣 + 御座船', desc: '搭乘黃金御座船遊護城河，仰望壯觀的大阪城。', icon: '🏯', timeInfo: '停留 2小時', map: 'https://www.google.com/maps/search/?api=1&query=Osaka+Castle' },
+                    { time: '18:00', type: 'spot', title: '通天閣 & 新世界', desc: '濃濃昭和風情。晚餐推薦必吃「串炸」(如：串炸達摩)。', icon: '🗼', timeInfo: '停留 2小時 (晚餐)', map: 'https://www.google.com/maps/search/?api=1&query=Tsutenkaku+Tower' },
+                    { time: '20:30', type: 'hotel', title: '返回飯店', desc: '搭乘地鐵回櫻川站。', icon: '🌙' }
                 ]
             },
             {
-                id: 'day3', date: '6/14 (日)', title: '京都古都一日遊 (觀光列車)',
-                desc: '搭乘特色列車，穿梭千本鳥居與清水舞台。',
+                id: 'day3', date: '6/14 (日)', title: '京都古都一日遊・梅田購物',
                 events: [
-                    { time: '08:30', type: 'transport', title: '前往梅田 (阪急大阪梅田站)', desc: '準備搭乘週末限定觀光列車。', stay: '-' },
-                    { time: '09:32', type: 'transport', title: '搭乘 京TRAIN雅洛號', desc: '建議提前排隊，充滿和風設計的列車。前往京都(河原町)。', stay: '45m', link: 'https://www.hankyu.co.jp/area_info/kyotrain-garaku/' },
-                    { time: '10:30', type: 'spot', title: '伏見稻荷大社', desc: '壯觀的千本鳥居，建議走一段即可折返。', stay: '2 hr', link: 'https://maps.google.com/?q=Fushimi+Inari+Taisha' },
-                    { time: '13:00', type: 'food', title: '清水寺周邊午餐', desc: '沿途可找烏龍麵或日式定食。', stay: '1 hr' },
-                    { time: '14:30', type: 'spot', title: '清水寺 & 二三年坂', desc: '世界遺產清水舞台，沿路老街採買伴手禮。', stay: '2.5 hr', link: 'https://maps.google.com/?q=Kiyomizu-dera' },
-                    { time: '17:00', type: 'spot', title: '祇園・花見小路', desc: '感受京都傳統町家風情。', stay: '1 hr', link: 'https://maps.google.com/?q=Hanamikoji+Street' },
-                    { time: '18:00', type: 'food', title: '下午茶/輕食：麓壽庵', desc: '絕美古蹟咖啡廳，品嚐精緻蕨餅。', stay: '1.5 hr', link: 'https://maps.google.com/?q=Rokujyuan+Kyoto' },
-                    { time: '19:30', type: 'transport', title: '返回大阪', desc: '搭乘阪急或京阪電車回大阪難波。', stay: '-' }
+                    { time: '08:00', type: 'transport', title: '出發前往京都', desc: '飯店搭地鐵至梅田。08:30搭乘「京TRAIN雅洛號」(週末限定豪華列車)前往京都。', icon: '🚄' },
+                    { time: '09:50', type: 'spot', title: '伏見稻荷大社', desc: '壯觀的千本鳥居。參觀後可去旁邊的「Inahiko Coffee」喝杯咖啡吃冰淇淋。', icon: '⛩️', timeInfo: '停留 1.5小時 (JR京都轉奈良線至稻荷)', map: 'https://www.google.com/maps/search/?api=1&query=Fushimi+Inari+Taisha' },
+                    { time: '12:00', type: 'spot', title: '清水寺 + 二三年坂', desc: '京都必訪世界遺產。沿路古色古香，非常適合逛街吃小吃。', icon: '🍁', timeInfo: '停留 2.5小時 (含午餐)', map: 'https://www.google.com/maps/search/?api=1&query=Kiyomizu-dera' },
+                    { time: '15:00', type: 'spot', title: '祇園、花見小路、八坂神社', desc: '感受京都藝伎文化氛圍。可安排去「麓壽庵」享用甜點。', icon: '🍵', timeInfo: '停留 2小時 (步行)', map: 'https://www.google.com/maps/search/?api=1&query=Gion+Kyoto' },
+                    { time: '17:30', type: 'food', title: '京都河原町晚餐', desc: '享用京都特色料理後，準備搭18:00的雅洛號回大阪。', icon: '🍱', timeInfo: '停留 1小時' },
+                    { time: '19:00', type: 'spot', title: '梅田商圈 (任天堂旗艦店)', desc: '抵達梅田。前往大丸百貨參觀任天堂大阪旗艦店(Nintendo OSAKA)與寶可夢中心。晚餐也可考慮在此吃「Hanadako」章魚燒。', icon: '🍄', timeInfo: '停留 2小時', map: 'https://www.google.com/maps/search/?api=1&query=Nintendo+OSAKA' },
+                    { time: '21:00', type: 'hotel', title: '返回飯店', desc: '地鐵【梅田→櫻川】。', icon: '🌙' }
                 ]
             },
             {
-                id: 'day4', date: '6/15 (一)', title: '歷史市場與海灣樂園',
-                desc: '早起吃海鮮，看天守閣，下午移宿準備暢遊USJ。',
+                id: 'day4', date: '6/15 (一)', title: '天保山海灣區・前進環球影城',
                 events: [
-                    { time: '07:30', type: 'food', title: '木津市場 (早市)', desc: '避開人潮，享用最新鮮的海鮮丼當早餐。', stay: '1.5 hr', link: 'https://maps.google.com/?q=Kizu+Wholesale+Market' },
-                    { time: '09:30', type: 'spot', title: '通天閣 & 新世界', desc: '復古大阪風情，可體驗溜滑梯(視小孩年紀)。', stay: '1.5 hr', link: 'https://maps.google.com/?q=Tsutenkaku' },
-                    { time: '11:30', type: 'spot', title: '大阪城天守閣 + 御座船', desc: '搭乘黃金御座船遊護城河，參觀天守閣。', stay: '2.5 hr', link: 'https://maps.google.com/?q=Osaka+Castle' },
-                    { time: '14:00', type: 'food', title: '午餐：Tempura Tarojiro', desc: '難波周邊的高CP值現炸天婦羅。', stay: '1 hr', link: 'https://maps.google.com/?q=Tempura+Tarojiro' },
-                    { time: '15:30', type: 'hotel', title: '移動並入住 USJ 飯店', desc: 'Hotel Kintetsu Universal City。', stay: '1 hr', link: 'https://maps.google.com/?q=Hotel+Kintetsu+Universal+City' },
-                    { time: '16:30', type: 'spot', title: '天保山海灣區', desc: '搭乘船長線至海遊館或樂高樂園探索中心。', stay: '2.5 hr', link: 'https://maps.google.com/?q=Osaka+Aquarium+Kaiyukan' },
-                    { time: '19:00', type: 'food', title: '天保山Marketplace晚餐', desc: '商場內有北極星蛋包飯等選擇。', stay: '1 hr' }
+                    { time: '09:30', type: 'hotel', title: '退房與行李運送', desc: '從難波飯店退房。建議可先將大行李利用宅急便寄至環球影城飯店，或放置於地鐵大型置物櫃。', icon: '🧳' },
+                    { time: '10:30', type: 'spot', title: '海遊館 (Kaiyukan)', desc: '世界最大級水族館之一，觀賞巨大的鯨鯊，非常適合親子。', icon: '🦈', timeInfo: '停留 2.5小時', map: 'https://www.google.com/maps/search/?api=1&query=Osaka+Aquarium+Kaiyukan' },
+                    { time: '13:00', type: 'food', title: '天保山購物中心午餐', desc: '館內有難波美食小巷(なにわ食いしんぼ横丁)，可品嚐大阪美食。', icon: '🍜', timeInfo: '停留 1小時' },
+                    { time: '14:00', type: 'spot', title: '樂高樂園探索中心', desc: '室內樂園，小孩的天堂！(需有兒童同行才能進入)。若時間充裕可搭乘天保山摩天輪。', icon: '🧱', timeInfo: '停留 2小時', map: 'https://www.google.com/maps/search/?api=1&query=LEGOLAND+Discovery+Center+Osaka' },
+                    { time: '16:30', type: 'transport', title: '前往環球影城站', desc: '搭乘渡輪「船長線(Captain Line)」直接橫渡海灣至環球影城港，快速又好玩。', icon: '🚢' },
+                    { time: '17:00', type: 'hotel', title: 'Hotel Kintetsu Universal City 入住', desc: '辦理入住，飯店就在影城旁。', icon: '🏨', map: 'https://www.google.com/maps/search/?api=1&query=Hotel+Kintetsu+Universal+City' },
+                    { time: '18:00', type: 'spot', title: 'Universal Citywalk', desc: '影城外圍商場逛街、吃晚餐(推薦Shake Shack或串家物語)。準備明日大戰！', icon: '🍔', timeInfo: '停留 2小時' }
                 ]
             },
             {
-                id: 'day5', date: '6/16 (二)', title: '環球影城瘋狂一日',
-                desc: '全家人的歡樂時光，超級任天堂世界！',
+                id: 'day5', date: '6/16 (二)', title: '日本環球影城 (USJ) 全日狂歡',
                 events: [
-                    { time: '07:30', type: 'spot', title: '前往 USJ 排隊', desc: '建議提早抵達準備入園。', stay: '-' },
-                    { time: '08:00', type: 'spot', title: '環球影城 (USJ)', desc: '超級任天堂世界、哈利波特、小小兵等。', stay: 'All Day', link: 'https://maps.google.com/?q=Universal+Studios+Japan' },
-                    { time: '13:00', type: 'food', title: '園內午餐', desc: '推薦奇諾比奧咖啡店(需提早抽整理券)或三根掃帚。', stay: '1 hr' },
-                    { time: '19:30', type: 'food', title: '晚餐：Universal Citywalk', desc: '出園後在商店街享用晚餐。', stay: '1.5 hr', link: 'https://maps.google.com/?q=Universal+Citywalk+Osaka' }
+                    { time: '07:30', type: 'transport', title: '起床準備、排隊', desc: '建議開園前1小時抵達門口排隊。', icon: '⏰' },
+                    { time: '08:30', type: 'spot', title: '超級任天堂世界 (Super Nintendo World)', desc: '入園後直衝或使用快速通關。購買能量手環體驗敲磚塊。', icon: '⭐', timeInfo: '重點必玩' },
+                    { time: '11:00', type: 'spot', title: '小小兵樂園', desc: '適合國小兒童，體驗乘車遊，吃小小兵造型包子。', icon: '🍌' },
+                    { time: '13:00', type: 'spot', title: '哈利波特魔法世界', desc: '喝奶油啤酒，體驗禁忌之旅或鷹馬的飛行。', icon: '🧙‍♂️' },
+                    { time: '15:00', type: 'spot', title: '家庭友善區 / 遊行', desc: '環球奇境(史努比、芝麻街)、觀賞下午的遊行。', icon: '🎈' },
+                    { time: '19:00', type: 'spot', title: '閉園活動/採購', desc: '做最後的紀念品採購。', icon: '🛍️' },
+                    { time: '21:00', type: 'hotel', title: '返回飯店', desc: '步行回緊鄰的近鐵飯店休息。', icon: '🌙' }
                 ]
             },
             {
-                id: 'day6', date: '6/17 (三)', title: '把握早晨，快樂賦歸',
-                desc: '飯店周邊最後採買，準備搭機。',
+                id: 'day6', date: '6/17 (三)', title: '收拾行囊・滿載而歸',
                 events: [
-                    { time: '08:00', type: 'food', title: '飯店早餐 / Citywalk', desc: '悠閒吃個早餐。', stay: '1 hr' },
-                    { time: '09:00', type: 'transport', title: '搭車前往關西機場', desc: '可搭乘利木津巴士直達機場。', stay: '1 hr' },
-                    { time: '10:00', type: 'spot', title: '機場免稅店最後採購', desc: '購買伴手禮。', stay: '1.5 hr' },
-                    { time: '12:25', type: 'flight', title: '起飛 (泰越捷回程)', desc: '告別大阪，平安返家。', stay: '-' }
+                    { time: '08:00', type: 'food', title: '飯店悠閒早餐', desc: '整理行李，準備退房。', icon: '☕' },
+                    { time: '09:00', type: 'transport', title: '前往關西機場', desc: '退房。從環球影城站搭JR，或在附近搭乘利木津巴士直達機場。', icon: '🚌' },
+                    { time: '10:25', type: 'flight', title: '機場報到與免稅採購', desc: '辦理 VZ567 報到手續。最後採買伴手禮 (如白色戀人、ROYCE)。', icon: '✈️' },
+                    { time: '12:25', type: 'flight', title: '班機起飛', desc: '再見大阪，帶著滿滿回憶回台灣。', icon: '🛫' },
+                    { time: '14:25', type: 'flight', title: '抵達桃園國際機場', desc: '平安抵達。', icon: '🏠' }
                 ]
             }
         ];
 
-        const foodData = [
-            { name: '麺や人類乃宝舟', category: 'meal', desc: '高評價人氣拉麵，湯頭濃郁獨特。', tags: ['拉麵', '梅田周邊'], link: 'https://maps.google.com/?q=人類みな麺類' }, // Changed map query slightly for better hit
-            { name: 'Gyutan Charcoal grilled YOSHIJI', category: 'meal', desc: '心齋橋超美味炭火烤牛舌，肉質Q彈。', tags: ['烤肉', '心齋橋'], link: 'https://maps.google.com/?q=Gyutan+YOSHIJI+Shinsaibashi' },
-            { name: 'next shikaku', category: 'meal', desc: '時髦裝潢，主打濃郁鮮甜的牡蠣拉麵。', tags: ['拉麵', '難波'], link: 'https://maps.google.com/?q=next+shikaku' },
-            { name: 'Tempura Tarojiro', category: 'meal', desc: '天婦羅定食，現點現炸CP值超高。', tags: ['天婦羅', '難波/千日前'], link: 'https://maps.google.com/?q=Tempura+Tarojiro' },
-            { name: '福太郎 本店', category: 'meal', desc: '大阪燒名店，蔥燒口味是招牌必點。', tags: ['大阪燒', '難波'], link: 'https://maps.google.com/?q=Fukutaro+Osaka' },
-            { name: 'Hanadako (はなだこ)', category: 'snack', desc: '梅田站前排隊名店，鋪滿青蔥的章魚燒。', tags: ['章魚燒', '梅田'], link: 'https://maps.google.com/?q=Hanadako' },
-            { name: '木津市場 海鮮丼', category: 'meal', desc: '早起才能吃到，食材最新鮮美味。', tags: ['海鮮', '大國町'], link: 'https://maps.google.com/?q=Kizu+Market' },
-            { name: '551蓬萊肉包', category: 'snack', desc: '大阪在地人也愛的熱騰騰多汁肉包。', tags: ['小吃', '到處都有'], link: 'https://maps.google.com/?q=551+Horai+Namba' },
-            { name: '麓壽庵 (Rokujyuan)', category: 'dessert', desc: '京都文化財日式宅邸內的夢幻蕨餅。', tags: ['甜點/咖啡', '京都'], link: 'https://maps.google.com/?q=麓壽庵' },
-            { name: '老爺爺起司蛋糕', category: 'dessert', desc: '難波必買！剛出爐搖晃的輕乳酪蛋糕。', tags: ['甜點', '難波'], link: 'https://maps.google.com/?q=Rikuro+Ojisan+Namba' },
-            { name: '北極星蛋包飯', category: 'meal', desc: '蛋包飯創始店，口味溫和適合小孩。', tags: ['洋食', '心齋橋/天保山'], link: 'https://maps.google.com/?q=Hokkyokusei+Shinsaibashi' }
+        const foodList = [
+            { name: '麺や人類乃宝舟', category: '正餐', desc: '指定必吃！超人氣美味拉麵，湯頭濃郁。', loc: '📍 依分店', map: 'https://www.google.com/maps/search/?api=1&query=人類乃宝舟' },
+            { name: 'Gyutan Charcoal grilled YOSHIJI', category: '正餐', desc: '心齋橋指定必吃。炭火烤牛舌，厚切多汁。', loc: '📍 心齋橋', map: 'https://www.google.com/maps/search/?api=1&query=Gyutan+Charcoal+grilled+YOSHIJI' },
+            { name: 'next shikaku', category: '正餐', desc: '指定必吃。牡蠣白湯拉麵，結合投影藝術的酷炫拉麵店。', loc: '📍 難波', map: 'https://www.google.com/maps/search/?api=1&query=next+shikaku+Osaka' },
+            { name: '福太郎大阪燒', category: '正餐', desc: '指定必吃。難波超人氣蔥燒、大阪燒老店。', loc: '📍 難波', map: 'https://www.google.com/maps/search/?api=1&query=Fukutaro+Okonomiyaki' },
+            { name: 'Tempura Tarojiro', category: '正餐', desc: '指定必吃。現炸酥脆天婦羅，CP值高。', loc: '📍 大阪', map: 'https://www.google.com/maps/search/?api=1&query=Tempura+Tarojiro' },
+            { name: '串炸達摩 (串かつだるま)', category: '小吃', desc: '新世界必吃。大阪名物，禁止二次沾醬！', loc: '📍 新世界/難波', map: 'https://www.google.com/maps/search/?api=1&query=Kushikatsu+Daruma' },
+            { name: 'Hanadako (はなだこ)', category: '小吃', desc: '指定必吃。梅田站超人氣章魚燒，蔥花給超滿。', loc: '📍 梅田', map: 'https://www.google.com/maps/search/?api=1&query=Hanadako+Umeda' },
+            { name: '551蓬萊肉包', category: '小吃', desc: '大阪靈魂美食，隨處可見，皮Q肉多汁。', loc: '📍 各大車站', map: 'https://www.google.com/maps/search/?api=1&query=551+Horai' },
+            { name: 'Inahiko Coffee', category: '甜點', desc: '指定行程。伏見稻荷旁，推薦冰淇淋與咖啡，環境舒適。', loc: '📍 京都伏見', map: 'https://www.google.com/maps/search/?api=1&query=Inahiko+Coffee' },
+            { name: '麓壽庵 (Rokujuan)', category: '甜點', desc: '指定行程。京都百年建築內的蕨餅專賣店，極具風情。', loc: '📍 京都', map: 'https://www.google.com/maps/search/?api=1&query=Rokujuan+Kyoto' },
+            { name: '老爺爺起司蛋糕 (りくろーおじさん)', category: '甜點', desc: '現烤出爐，搖晃的輕乳酪蛋糕，便宜又好吃。', loc: '📍 難波/梅田', map: 'https://www.google.com/maps/search/?api=1&query=Rikuro+Ojisan+Cheesecake' },
+            { name: 'HARBS', category: '甜點', desc: '必吃水果千層蛋糕，份量大，下午茶首選。', loc: '📍 心齋橋/大丸', map: 'https://www.google.com/maps/search/?api=1&query=HARBS+Osaka' }
         ];
 
-        const souvenirsData = [
-            'Bâton d\'or (被稱為LV界的Pocky，多種高級口味)',
-            'Grand Calbee (厚切奢華版洋芋片，梅田阪急限定)',
-            '老爺爺起司蛋糕 (建議回程當天買，冷藏也好吃)',
-            '呼吸巧克力 (多種口味的果仁巧克力，包裝可愛)',
-            'Bake Cheese Tart (超濃郁起司塔)',
-            '大阪半月燒 (法蘭酥夾心，經典不敗)',
-            'UHA味覺糖 Cororo (果汁感極重的軟糖，多買幾包)',
-            'ECHIRE 艾許奶油餅乾 (梅田有專賣店，極致奶油香)',
-            '辻利 抹茶系列甜點 (抹茶控必備)',
-            'USJ 瑪利歐/哈利波特 園區限定周邊'
+        const souvenirs = [
+            { name: 'Bâton d\'or', desc: '界的愛馬仕Pocky，高雅奶油香，包裝精美。', img: '🍫' },
+            { name: 'Grand Calbee', desc: '高級版厚切洋芋片，多種特殊口味。', img: '🥔' },
+            { name: '老爺爺起司蛋糕', desc: '帶回台灣依然美味(需冷藏)，CP值極高。', img: '🍰' },
+            { name: '大阪半月燒 (月化粧)', desc: '連續多年獲獎，充滿煉乳與奶油香的饅頭。', img: '🌕' },
+            { name: '小小兵/瑪利歐周邊', desc: 'USJ限定，餅乾盒或文具，小孩最愛。', img: '🍄' },
+            { name: '辻利兵衛本店 抹茶點心', desc: '京都宇治老字號，抹茶費南雪或竹林年輪蛋糕。', img: '🍵' },
+            { name: '呼吸巧克力', desc: '提拉米蘇口味的杏仁巧克力，越吃越順口。', img: '🍬' },
+            { name: '食倒太郎布丁', desc: '包裝超可愛，附贈帽子，焦糖風味布丁。', img: '🍮' },
+            { name: '中之島 Rusk', desc: '焦糖杏仁脆餅，酥脆香甜，適合配茶。', img: '🍪' },
+            { name: 'Echiré Omelette', desc: '梅田阪急限定，頂級艾許奶油做的歐姆蕾小蛋糕。', img: '🧈' }
         ];
 
-        // --- 2. Render Functions ---
+        // --- 介面互動邏輯 ---
 
-        function renderDaySelector() {
-            const container = document.getElementById('day-selector');
-            container.innerHTML = itineraryData.map((day, index) => `
-                <button onclick="selectDay('${day.id}')" 
-                        class="pill-btn shrink-0 ${index === 0 ? 'active-day-btn' : 'inactive-day-btn'}" 
-                        data-day="${day.id}">
-                    Day ${index + 1}<br><span class="text-xs font-normal">${day.date.split(' ')[0]}</span>
-                </button>
-            `).join('');
-        }
+        // 導覽列切換
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const sections = document.querySelectorAll('main > section');
 
-        function selectDay(dayId) {
-            // Update buttons
-            document.querySelectorAll('#day-selector button').forEach(btn => {
-                if (btn.dataset.day === dayId) {
-                    btn.classList.remove('inactive-day-btn');
-                    btn.classList.add('active-day-btn');
-                } else {
-                    btn.classList.add('inactive-day-btn');
-                    btn.classList.remove('active-day-btn');
-                }
-            });
-
-            // Update content
-            const dayData = itineraryData.find(d => d.id === dayId);
-            document.getElementById('current-day-title').innerHTML = `${dayData.date} - ${dayData.title} <p class="text-sm text-gray-500 mt-1 font-normal">${dayData.desc}</p>`;
-            
-            const timelineContainer = document.getElementById('timeline-container');
-            timelineContainer.innerHTML = dayData.events.map(event => {
-                let icon = '📍';
-                let iconColor = 'text-rose-500';
-                if(event.type === 'food') { icon = '🍽️'; iconColor = 'text-amber-600'; }
-                if(event.type === 'transport') { icon = '🚆'; iconColor = 'text-sky-500'; }
-                if(event.type === 'flight') { icon = '✈️'; iconColor = 'text-sky-600'; }
-                if(event.type === 'hotel') { icon = '🏨'; iconColor = 'text-emerald-500'; }
-
-                const linkHtml = event.link ? `<a href="${event.link}" target="_blank" class="inline-block mt-2 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-1 px-2 rounded-md transition">查看地圖/資訊 ↗</a>` : '';
-
-                return `
-                <div class="relative pl-6 md:pl-8 group">
-                    <div class="timeline-dot group-hover:scale-125 transition-transform"></div>
-                    <div class="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-4 mb-1">
-                        <span class="font-black text-rose-400 w-16">${event.time}</span>
-                        <h4 class="font-bold text-lg text-gray-800 flex items-center gap-2">
-                            <span class="${iconColor}">${icon}</span> ${event.title}
-                        </h4>
-                    </div>
-                    <div class="bg-white p-3 rounded-lg border border-gray-100 shadow-sm ml-0 md:ml-20">
-                        <p class="text-gray-600 text-sm md:text-base">${event.desc}</p>
-                        <div class="flex items-center justify-between mt-2">
-                            <span class="text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded">停留: ${event.stay}</span>
-                            ${linkHtml}
-                        </div>
-                    </div>
-                </div>
-                `;
-            }).join('');
-        }
-
-        function renderFood(filter = 'all') {
-            const container = document.getElementById('food-grid');
-            const filteredData = filter === 'all' ? foodData : foodData.filter(item => item.category === filter);
-            
-            container.innerHTML = filteredData.map(item => {
-                let catIcon = item.category === 'meal' ? '🍱' : item.category === 'snack' ? '🐙' : '🍰';
-                return `
-                <div class="bg-white p-5 rounded-2xl cute-shadow border-2 border-amber-50 flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-lg text-amber-900">${item.name}</h3>
-                            <span class="text-xl">${catIcon}</span>
-                        </div>
-                        <p class="text-gray-600 text-sm mb-3">${item.desc}</p>
-                        <div class="flex flex-wrap gap-1 mb-4">
-                            ${item.tags.map(tag => `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full">${tag}</span>`).join('')}
-                        </div>
-                    </div>
-                    <a href="${item.link}" target="_blank" class="text-center block w-full bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold py-2 rounded-lg text-sm transition">
-                        📍 Google Maps 導航
-                    </a>
-                </div>
-                `;
-            }).join('');
-        }
-
-        function setupFoodFilters() {
-            const buttons = document.querySelectorAll('#food-filters button');
-            buttons.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    // Update active state
-                    buttons.forEach(b => {
-                        b.classList.remove('active-filter');
-                        b.classList.add('inactive-filter');
-                    });
-                    e.target.classList.remove('inactive-filter');
-                    e.target.classList.add('active-filter');
-                    
-                    // Filter data
-                    renderFood(e.target.dataset.filter);
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetId = e.target.getAttribute('data-target');
+                
+                // 更新按鈕樣式
+                navBtns.forEach(b => {
+                    b.classList.remove('bg-kawaii-pink', 'text-white');
+                    b.classList.add('text-kawaii-text', 'hover:bg-rose-50');
                 });
+                e.target.classList.remove('text-kawaii-text', 'hover:bg-rose-50');
+                e.target.classList.add('bg-kawaii-pink', 'text-white');
+
+                // 切換 Section
+                sections.forEach(sec => {
+                    if (sec.id === targetId) {
+                        sec.classList.remove('section-hidden');
+                        sec.classList.add('animate-fade-in'); // 可選：添加淡入動畫類別
+                    } else {
+                        sec.classList.add('section-hidden');
+                    }
+                });
+                
+                window.scrollTo(0,0);
+            });
+        });
+
+        // 渲染行程 Tabs
+        const dayTabsContainer = document.getElementById('day-tabs');
+        itineraryData.forEach((day, index) => {
+            const btn = document.createElement('button');
+            btn.className = `px-4 py-2 rounded-xl font-bold border-2 transition-all ${index === 0 ? 'border-kawaii-pink bg-rose-50 text-kawaii-pink' : 'border-gray-200 bg-white text-gray-500 hover:border-kawaii-pink hover:text-kawaii-pink'}`;
+            btn.innerText = `Day ${index + 1} (${day.date.split(' ')[0]})`;
+            btn.onclick = () => renderDay(index, btn);
+            dayTabsContainer.appendChild(btn);
+        });
+
+        function renderDay(index, clickedBtn) {
+            // 更新 Tab 樣式
+            const allTabs = dayTabsContainer.querySelectorAll('button');
+            allTabs.forEach(b => {
+                b.className = 'px-4 py-2 rounded-xl font-bold border-2 border-gray-200 bg-white text-gray-500 transition-all hover:border-kawaii-pink hover:text-kawaii-pink';
+            });
+            clickedBtn.className = 'px-4 py-2 rounded-xl font-bold border-2 border-kawaii-pink bg-rose-50 text-kawaii-pink transition-all';
+
+            const day = itineraryData[index];
+            document.getElementById('current-day-title').innerHTML = `${day.date} - <span class="text-kawaii-pink">${day.title}</span>`;
+            
+            const timelineContainer = document.getElementById('timeline-content');
+            timelineContainer.innerHTML = '';
+
+            day.events.forEach(evt => {
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                
+                // 依類型設定顏色
+                let iconColor = 'bg-gray-200';
+                if(evt.type === 'spot') iconColor = 'bg-kawaii-blue text-white';
+                if(evt.type === 'food') iconColor = 'bg-kawaii-yellow text-kawaii-text';
+                if(evt.type === 'hotel') iconColor = 'bg-kawaii-pink text-white';
+                if(evt.type === 'transport' || evt.type === 'flight') iconColor = 'bg-kawaii-green text-white';
+
+                let mapHtml = evt.map ? `<a href="${evt.map}" target="_blank" class="inline-flex items-center text-sm text-blue-500 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded-full mt-2 transition-colors">📍 Google Maps</a>` : '';
+                let timeInfoHtml = evt.timeInfo ? `<p class="text-sm text-kawaii-pink font-semibold mt-1">⏱️ ${evt.timeInfo}</p>` : '';
+
+                item.innerHTML = `
+                    <div class="timeline-icon ${iconColor}">${evt.icon}</div>
+                    <div class="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-2">
+                            <span class="font-black text-lg text-kawaii-text bg-gray-100 px-2 py-1 rounded">${evt.time}</span>
+                            <h4 class="text-xl font-bold">${evt.title}</h4>
+                        </div>
+                        <p class="text-gray-600">${evt.desc}</p>
+                        ${timeInfoHtml}
+                        ${mapHtml}
+                    </div>
+                `;
+                timelineContainer.appendChild(item);
             });
         }
+        // 初始化載入第一天
+        renderDay(0, dayTabsContainer.querySelector('button'));
 
-        function renderSouvenirs() {
-            const list = document.getElementById('souvenir-list');
-            list.innerHTML = souvenirsData.map(item => `
-                <li class="flex items-start gap-2">
-                    <span class="text-rose-400 mt-1">🎀</span>
-                    <span>${item}</span>
-                </li>
-            `).join('');
+
+        // 渲染美食
+        const foodGrid = document.getElementById('food-grid');
+        function renderFood(filter = 'all') {
+            foodGrid.innerHTML = '';
+            foodList.forEach(food => {
+                if (filter !== 'all' && food.category !== filter) return;
+                
+                let badgeColor = food.category === '正餐' ? 'bg-orange-100 text-orange-600' : 
+                                 (food.category === '小吃' ? 'bg-yellow-100 text-yellow-600' : 'bg-pink-100 text-pink-600');
+
+                const card = document.createElement('div');
+                card.className = 'bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow relative overflow-hidden group';
+                card.innerHTML = `
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-kawaii-pink opacity-5 rounded-bl-full transform group-hover:scale-150 transition-transform"></div>
+                    <span class="inline-block px-2 py-1 rounded text-xs font-bold mb-3 ${badgeColor}">${food.category}</span>
+                    <h4 class="text-lg font-bold mb-2">${food.name}</h4>
+                    <p class="text-sm text-gray-500 mb-4 h-10">${food.desc}</p>
+                    <div class="flex justify-between items-center mt-auto border-t pt-3">
+                        <span class="text-sm font-medium text-gray-600">${food.loc}</span>
+                        <a href="${food.map}" target="_blank" class="text-blue-500 hover:text-blue-700">地圖 ↗</a>
+                    </div>
+                `;
+                foodGrid.appendChild(card);
+            });
         }
+        renderFood();
 
-        function initChart() {
-            const ctx = document.getElementById('transportChart').getContext('2d');
-            
-            // Chart.js Configuration
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['特急 Rapi:t', '空港急行', '利木津巴士'],
-                    datasets: [
-                        {
-                            label: '時間 (分鐘)',
-                            data: [38, 45, 50],
-                            backgroundColor: '#FF9494', // Rose accent
-                            yAxisID: 'y',
-                            borderRadius: 6,
-                            barPercentage: 0.6
-                        },
-                        {
-                            label: '費用 (JPY)',
-                            data: [1490, 970, 1100],
-                            backgroundColor: '#38BDF8', // Sky accent
-                            yAxisID: 'y1',
-                            borderRadius: 6,
-                            barPercentage: 0.6
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false, // CRITICAL: Allows container to control height
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { position: 'top', labels: { font: { family: "'Noto Sans TC', sans-serif" } } },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) { label += ': '; }
-                                    if (context.parsed.y !== null) {
-                                        label += context.parsed.y + (context.datasetIndex === 0 ? ' 分鐘' : ' 円');
-                                    }
-                                    return label;
-                                }
-                            }
+        // 美食篩選邏輯
+        const filterBtns = document.querySelectorAll('.food-filter-btn');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-kawaii-pink', 'text-white', 'border-kawaii-pink');
+                    b.classList.add('bg-white', 'text-kawaii-text', 'border-gray-300');
+                });
+                e.target.classList.remove('bg-white', 'text-kawaii-text', 'border-gray-300');
+                e.target.classList.add('bg-kawaii-pink', 'text-white', 'border-kawaii-pink');
+                renderFood(e.target.getAttribute('data-filter'));
+            });
+        });
+
+        // 渲染伴手禮
+        const souvenirGrid = document.getElementById('souvenir-grid');
+        souvenirs.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'bg-white p-4 rounded-2xl text-center shadow-sm border border-gray-100 hover:-translate-y-1 transition-transform';
+            card.innerHTML = `
+                <div class="text-5xl mb-3">${item.img}</div>
+                <h4 class="font-bold text-md mb-1">${item.name}</h4>
+                <p class="text-xs text-gray-500">${item.desc}</p>
+            `;
+            souvenirGrid.appendChild(card);
+        });
+
+        // Chart.js 初始化 (時間分配圖表)
+        const ctx = document.getElementById('timeAllocationChart').getContext('2d');
+        const timeAllocationChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['景點玩樂 & 逛街 (45%)', '交通移動 (15%)', '美食饗宴 (15%)', '休息與睡眠 (25%)'],
+                datasets: [{
+                    data: [45, 15, 15, 25],
+                    backgroundColor: [
+                        '#79C0DB', // blue
+                        '#88C273', // green
+                        '#F9D949', // yellow
+                        '#FF8E8B'  // pink
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // 確保受外層容器高度控制
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { family: "'Noto Sans TC', sans-serif" },
+                            padding: 20
                         }
                     },
-                    scales: {
-                        x: { grid: { display: false } },
-                        y: {
-                            type: 'linear', display: true, position: 'left',
-                            title: { display: true, text: '時間 (分鐘)', color: '#FF9494' },
-                            min: 0, max: 60
-                        },
-                        y1: {
-                            type: 'linear', display: true, position: 'right',
-                            title: { display: true, text: '費用 (JPY)', color: '#38BDF8' },
-                            grid: { drawOnChartArea: false },
-                            min: 0, max: 2000
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ' ' + context.label.split(' ')[0] + ': 估計約 ' + context.raw + '%';
+                            }
                         }
                     }
-                }
-            });
-        }
-
-        // --- 3. Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            renderDaySelector();
-            selectDay('day1'); // Load Day 1 by default
-            renderFood();
-            setupFoodFilters();
-            renderSouvenirs();
-            initChart();
+                },
+                cutout: '65%'
+            }
         });
 
     </script>
